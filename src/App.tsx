@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./components/common/DashboardLayout";
+import { ProtectedRoute } from "./components/common/ProtectedRoute";
 import LoginPage from "./components/pages/login/Login";
 import UserManagement from "./components/pages/user/UserManagement";
 import RecruiterManagement from "./components/pages/recruiter/RecruiterManagement";
@@ -18,8 +19,15 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<LoginPage />} />{" "}
         {/* Mặc định vào login nếu muốn */}
-        {/* Nhóm các route Dashboard sử dụng Layout chung */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        {/* Nhóm các route Dashboard sử dụng Layout chung - Chỉ admin mới vào được */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
           {/* Khi vào /dashboard, sẽ tự động render PortfolioPage thông qua Outlet */}
           <Route index element={<UserManagement />} />
           <Route path="users" element={<UserManagement />} />

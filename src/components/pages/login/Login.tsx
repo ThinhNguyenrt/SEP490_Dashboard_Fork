@@ -1,9 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Mail, Lock, Eye, EyeOff, Globe, User, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LoginPlaceholder from "@/assets/login-page-image-placeholder.png";
 import { LoginForm } from "./LoginForm";

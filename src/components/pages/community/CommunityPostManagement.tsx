@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Eye,
   Ban,
@@ -6,7 +6,6 @@ import {
   ChevronRight,
   AlertCircle,
   Flag,
-  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

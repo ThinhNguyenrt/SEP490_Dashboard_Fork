@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   Plus,
@@ -10,7 +10,6 @@ import {
   Building2,
   Clock,
   CheckCircle2,
-  XCircle,
   TrendingUp,
   Briefcase,
   ShieldAlert,

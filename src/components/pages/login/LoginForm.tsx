@@ -36,11 +36,11 @@ export const LoginForm = () => {
         // lưu user
         dispatch(loginSuccess(account)); 
         
-        // Recruiter vào recruiter-home, User vào talent-home
-        if (account.role === "recruiter") {
-          navigate("/recruiter-home");
+        // Admin vào dashboard, ngân lại những user khác
+        if (account.role === "admin") {
+          navigate("/dashboard");
         } else {
-          navigate("/talent-home");
+          dispatch(loginFailure("Chỉ admin mới có quyền truy cập dashboard!"));
         }
       } else {
         dispatch(loginFailure("Email hoặc mật khẩu không chính xác!"));

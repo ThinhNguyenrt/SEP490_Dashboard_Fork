@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Ban,
@@ -21,8 +21,6 @@ import {
 import { cn } from "@/lib/utils";
 import {
   allRecruiters,
-  getRecruiterById,
-  Recruiter,
 } from "@/data/allRecruiters";
 const MOCK_POSTS = [
   {

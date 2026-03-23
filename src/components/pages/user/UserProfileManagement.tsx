@@ -1,18 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Ban,
   Trash2,
   Edit3,
   RefreshCw,
-  Folder,
   MessageSquare,
   Mail,
   Heart,
   Share2,
   MoreVertical,
   ShieldCheck,
-  Calendar,
-  CheckCircle2,
   FolderKanban,
   ArrowLeft,
 } from "lucide-react";

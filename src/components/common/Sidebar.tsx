@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   Users, Building2, MessageSquareText, Briefcase,
-  Contact2, LogOut, ChevronLeft, ChevronRight, Menu
+  Contact2, LogOut, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAppDispatch, useAppSelector } from "@/store/hook";
+import { logout } from "@/store/features/auth/authSlice";
 
 const NAVIGATION = [
   {
@@ -26,6 +28,14 @@ const NAVIGATION = [
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { user } = useAppSelector((state) => state.auth);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
 
   return (
     <aside 
@@ -115,13 +125,17 @@ const Sidebar = () => {
           
           {!isCollapsed && (
             <div className="flex-1 min-w-0 animate-in fade-in">
-              <p className="text-[13px] font-black text-slate-800 truncate">Nguyễn Văn A</p>
-              <p className="text-[11px] text-slate-400 font-medium truncate italic underline underline-offset-2">Admin@gmail.com</p>
+              <p className="text-[13px] font-black text-slate-800 truncate">Admin</p>
+              <p className="text-[11px] text-slate-400 font-medium truncate italic underline underline-offset-2">{user?.email}</p>
             </div>
           )}
           
           {!isCollapsed && (
-            <button className="text-slate-300 hover:text-red-500 transition-colors cursor-pointer">
+            <button 
+              onClick={handleLogout}
+              className="text-slate-300 hover:text-red-500 transition-colors cursor-pointer"
+              title="Đăng xuất"
+            >
               <LogOut size={18} />
             </button>
           )}

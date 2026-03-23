@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { 
   Eye, Ban, ChevronLeft, ChevronRight, 
   CheckCircle2, XCircle, FileText, 
-  Clock, AlertCircle, Flag, Briefcase
+  Clock, AlertCircle, Flag
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
