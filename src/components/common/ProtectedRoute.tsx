@@ -3,19 +3,19 @@ import { useAppSelector } from "@/store/hook";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string;
+  requiredRole?: number;
 }
 
-export function ProtectedRoute({ children, requiredRole = "admin" }: ProtectedRouteProps) {
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+export function ProtectedRoute({ children, requiredRole = 3}: ProtectedRouteProps) {
+  const { user } = useAppSelector((state) => state.auth);
 
-  // Not logged in - redirect to login
-  if (!isAuthenticated || !user) {
+  // Not logged in - redirect to login  
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
   // Logged in but wrong role - redirect to login
-  if (requiredRole && user.role !== requiredRole) {
+  if (requiredRole && user.role !== 3) {
     return <Navigate to="/login" replace />;
   }
 

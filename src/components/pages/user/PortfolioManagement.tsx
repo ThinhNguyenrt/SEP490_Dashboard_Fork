@@ -131,9 +131,9 @@ const PortfolioManagement = () => {
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#f8fafd] p-8 animate-in fade-in duration-500">
+    <div className="flex-1 min-h-screen bg-[#f8fafd] p-4 animate-in fade-in duration-500">
       {/* 1. Header Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <StatCard
           label="Tổng số hồ sơ"
           value="1,250"

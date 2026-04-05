@@ -14,20 +14,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { allUsers } from "@/data/allUser";
+import { Employee } from "@/types/user";
 
-// --- Types ---
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  status: "Hoạt động" | "Bị khóa";
-  joinedDate: string;
-  avatarSeed: string;
-}
 
 interface PaginationResponse {
-  data: User[];
+  data: Employee[];
   totalItems: number;
   totalPages: number;
 }
@@ -40,20 +31,25 @@ const fetchUsersFromBackend = async (
   // Giả lập delay mạng
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-
   const start = (pageNum - 1) * pageSize;
-  const data = allUsers.slice(start, start + pageSize);
+  const response = await fetch(
+    "https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Employee",
+  );
+  // Giả sử API trả về mảng trực tiếp: [{}, {}, ...]
+  // Nếu trả về { data: [...] } thì dùng response.data.data
+  const responseUsers = await response.json();
+  const data = responseUsers.slice(start, start + pageSize);
 
   return {
     data,
-    totalItems: allUsers.length,
-    totalPages: Math.ceil(allUsers.length / pageSize),
+    totalItems: responseUsers.length,
+    totalPages: Math.ceil(responseUsers.length / pageSize),
   };
 };
 
 const UserManagement = () => {
   // --- States ---
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -76,9 +72,9 @@ const UserManagement = () => {
   }, [currentPage]); // Re-fetch khi pageNum thay đổi
 
   return (
-    <div className="flex-1 min-h-screen bg-[#f8fafd] p-8 animate-in fade-in duration-500">
+    <div className="flex-1 min-h-screen bg-[#f8fafd] p-4 animate-in fade-in duration-500">
       {/* 1. Header & Action Button */}
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex justify-between items-end mb-4">
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight">
             Danh sách Người dùng
@@ -93,7 +89,7 @@ const UserManagement = () => {
       </div>
 
       {/* 2. Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
         <StatCard
           label="Tổng số người dùng"
           value="1,280"
@@ -111,7 +107,7 @@ const UserManagement = () => {
       </div>
 
       {/* 3. Filter Bar */}
-      <div className="bg-white border-2 border-white shadow-sm rounded-3xl p-4 flex flex-col md:flex-row gap-4 items-center mb-6">
+      <div className="bg-white border-2 border-white shadow-sm rounded-3xl p-2 flex flex-col md:flex-row gap-4 items-center mb-4">
         <div className="relative flex-1 group">
           <Search
             className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"
@@ -120,7 +116,7 @@ const UserManagement = () => {
           <input
             type="text"
             placeholder="Tìm kiếm theo tên, email hoặc ID..."
-            className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/10 transition-all"
+            className="w-full pl-12 pr-2 py-3 bg-slate-50 border-none rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/10 transition-all"
           />
         </div>
         <div className="flex gap-2 ">
@@ -175,8 +171,12 @@ const UserManagement = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-xs border border-blue-100 uppercase">
-                        {user.name.split(" ").pop()?.substring(0, 2)}
+                      <div className=" flex items-center justify-center text-blue-600 font-black text-xs uppercase">
+                        <img
+                          src={user.avatar || "/"}
+                          alt="User avatar"
+                          className="w-9 h-9 rounded-full"
+                        />
                       </div>
                       <span className="text-[14px] font-bold text-slate-700">
                         {user.name}
@@ -184,22 +184,22 @@ const UserManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-[13px] font-medium text-slate-500">
-                    {user.email}
+                    {user.name} {/* {user.email} {} */}
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={cn(
                         "px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-tighter",
-                        user.status === "Hoạt động"
+                        user.name === "Hoạt động"
                           ? "bg-emerald-50 text-emerald-500"
                           : "bg-red-50 text-red-500",
                       )}
                     >
-                      {user.status}
+                      {user.name} {/* {user.status} {} */}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-[13px] font-bold text-slate-400">
-                    {user.joinedDate}
+                    {user.name} {/* {user.createAt} {} */}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
@@ -214,11 +214,12 @@ const UserManagement = () => {
                       <button
                         className={cn(
                           "p-2 rounded-lg transition-all cursor-pointer",
-                          user.status === "Bị khóa"
+                          user.name === "Bị khóa"
                             ? "text-red-500 bg-red-50"
                             : "text-slate-400 hover:text-red-500 hover:bg-red-50",
                         )}
                       >
+                        {/* {user.status} {} */}
                         <Ban size={18} />
                       </button>
                     </div>
@@ -244,7 +245,7 @@ const UserManagement = () => {
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => p - 1)}
-              className="p-2 text-slate-400 hover:bg-white rounded-lg disabled:opacity-30 transition-all"
+              className="p-2 text-slate-400 hover:bg-white rounded-lg disabled:opacity-30 transition-all cursor-pointer"
             >
               <ChevronLeft size={20} />
             </button>
@@ -284,7 +285,7 @@ const UserManagement = () => {
             <button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
-              className="p-2 text-slate-400 hover:bg-white rounded-lg disabled:opacity-30 transition-all"
+              className="p-2 text-slate-400 hover:bg-white rounded-lg disabled:opacity-30 transition-all cursor-pointer"
             >
               <ChevronRight size={20} />
             </button>
