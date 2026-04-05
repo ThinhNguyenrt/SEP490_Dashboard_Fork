@@ -3,7 +3,6 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import LoginPlaceholder from "@/assets/login-page-image-placeholder.png";
 import { LoginForm } from "./LoginForm";
-import { RegisterForm } from "./RegisterForm";
 type AuthMode = "login" | "register";
 export default function LoginPage() {
   const [mode, setMode] = useState<AuthMode>("login");
@@ -46,7 +45,7 @@ export default function LoginPage() {
                 >
                   Đăng nhập
                 </button>
-                <button
+                {/* <button
                   onClick={() => setMode("register")}
                   className={cn(
                     "flex-1 pb-3 cursor-pointer text-sm transition-all",
@@ -56,23 +55,23 @@ export default function LoginPage() {
                   )}
                 >
                   Đăng ký
-                </button>
+                </button> */}
               </div>
 
               {/* Tiêu đề động */}
               <div className="mb-1">
                 <h1 className="text-2xl font-bold">
                   {mode === "login" && "Chào mừng trở lại!"}
-                  {mode === "register" && "Tạo tài khoản mới"}
+                  {/* {mode === "register" && "Tạo tài khoản mới"} */}
                 </h1>
               </div>
 
               {/* Render Component tương ứng */}
               <div className="min-h-100 flex flex-col justify-start">
                 {mode === "login" && <LoginForm />}
-                {mode === "register" && (
+                {/* {mode === "register" && (
                   <RegisterForm onSwitch={() => setMode("login")} />
-                )}
+                )} */}
               </div>
             </div>
           </div>

@@ -17,19 +17,8 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { allRecruiters } from "@/data/allRecruiters";
 import { useNavigate } from "react-router-dom";
-
-// --- Types ---
-interface Recruiter {
-  id: string;
-  name: string;
-  location: string;
-  email: string;
-  industry: string;
-  status: "Hoạt động" | "Đang chờ duyệt" | "Bị từ chối";
-  logoSeed: string;
-}
+import { Recruiter } from "@/types/user";
 
 interface PaginationResponse {
   data: Recruiter[];
@@ -45,12 +34,14 @@ const fetchRecruitersFromBackend = async (
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   const start = (pageNum - 1) * pageSize;
-  const data = allRecruiters.slice(start, start + pageSize);
-
+  const response = await fetch("https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Company");
+  const responseRecruiters = await response.json();
+  const data = responseRecruiters.slice(start, start + pageSize);
+  
   return {
     data,
-    totalItems: allRecruiters.length,
-    totalPages: Math.ceil(allRecruiters.length / pageSize),
+    totalItems: responseRecruiters.length,
+    totalPages: Math.ceil(responseRecruiters.length / pageSize),
   };
 };
 
@@ -77,9 +68,9 @@ const RecruiterManagement = () => {
   }, [currentPage]);
 
   return (
-    <div className="flex-1 min-h-screen bg-[#f8fafd] p-8 animate-in fade-in duration-500">
+    <div className="flex-1 min-h-screen bg-[#f8fafd] p-4 animate-in fade-in duration-500">
       {/* 1. Header Area */}
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex justify-between items-end mb-4">
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight">
             Quản lý Nhà tuyển dụng
@@ -94,7 +85,7 @@ const RecruiterManagement = () => {
       </div>
 
       {/* 2. Stats Cards (Dựa theo ảnh mẫu) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
         <div className="bg-white border-2 border-white p-6 rounded-[2rem] shadow-sm flex items-center justify-between group">
           <div>
             <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">
@@ -130,7 +121,7 @@ const RecruiterManagement = () => {
       </div>
 
       {/* 3. Filter Bar */}
-      <div className="bg-white border-2 border-white shadow-sm rounded-3xl p-4 flex flex-col md:flex-row gap-4 items-center mb-6">
+      <div className="bg-white border-2 border-white shadow-sm rounded-3xl p-2 flex flex-col md:flex-row gap-4 items-center mb-4">
         <div className="relative flex-1 group">
           <Search
             className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"
@@ -139,7 +130,7 @@ const RecruiterManagement = () => {
           <input
             type="text"
             placeholder="Tìm kiếm theo tên công ty hoặc email..."
-            className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/10 transition-all"
+            className="w-full pl-12 pr-2 py-3 bg-slate-50 border-none rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/10 transition-all"
           />
         </div>
         <div className="flex gap-2">
@@ -184,47 +175,47 @@ const RecruiterManagement = () => {
                 </td>
               </tr>
             ) : (
-              recruiters.map((item) => (
+              recruiters.map((recruiter) => (
                 <tr
-                  key={item.id}
+                  key={recruiter.id}
                   className="hover:bg-slate-50/50 transition-colors group"
                 >
                   <td className="px-6 py-4 text-[13px] font-bold text-slate-400">
-                    {item.id}
+                    {recruiter.id}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-white shrink-0 shadow-inner overflow-hidden uppercase font-black text-[10px]">
                         <img
-                          src={`https://api.dicebear.com/7.x/initials/svg?seed=${item.logoSeed}`}
+                          src={recruiter.avatar}
                           alt="logo"
                         />
                       </div>
                       <div>
                         <p className="text-[14px] font-black text-slate-700 leading-tight">
-                          {item.name}
+                          {recruiter.companyName}
                         </p>
                         <p className="text-[11px] text-slate-400 font-bold mt-1 flex items-center gap-1 uppercase">
-                          <MapPin size={10} /> {item.location}
+                          <MapPin size={10} /> {recruiter.address}
                         </p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-[13px] font-medium text-slate-500">
-                    {item.email}
+                    {recruiter.companyName} {/* {user.email} {} */}
                   </td>
                   <td className="px-6 py-4">
                     <span className="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                      {item.industry}
+                      {recruiter.activityField}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div
                       className={cn(
                         "flex items-center gap-2 px-3 py-1.5 rounded-full w-fit text-[11px] font-black uppercase tracking-tighter",
-                        item.status === "Hoạt động"
+                        recruiter.companyName === "Hoạt động"
                           ? "bg-emerald-50 text-emerald-500"
-                          : item.status === "Đang chờ duyệt"
+                          : recruiter.companyName === "Đang chờ duyệt"
                             ? "bg-slate-100 text-slate-500"
                             : "bg-red-50 text-red-500",
                       )}
@@ -232,19 +223,19 @@ const RecruiterManagement = () => {
                       <div
                         className={cn(
                           "w-1.5 h-1.5 rounded-full",
-                          item.status === "Hoạt động"
+                          recruiter.companyName === "Hoạt động"
                             ? "bg-emerald-500"
-                            : item.status === "Đang chờ duyệt"
+                            : recruiter.companyName === "Đang chờ duyệt"
                               ? "bg-slate-400"
                               : "bg-red-500",
                         )}
                       />
-                      {item.status}
+                      {recruiter.companyName}  {/* {user.status} {} */}
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
-                      {item.status === "Đang chờ duyệt" ? (
+                      {recruiter.companyName === "Đang chờ duyệt" ? (
                         <>
                           <button className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all cursor-pointer">
                             <CheckCircle2 size={18} />
@@ -253,13 +244,13 @@ const RecruiterManagement = () => {
                             <X size={18} />
                           </button>
                           <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-all cursor-pointer">
-                            <Eye size={18} onClick={() => navigate(`/dashboard/recruiters/${item.id}`)} />
+                            <Eye size={18} onClick={() => navigate(`/dashboard/recruiters/${recruiter.id}`)} />
                           </button>
                         </>
                       ) : (
                         <>
                           <button className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all cursor-pointer">
-                            <Eye size={18} onClick={() => navigate(`/dashboard/recruiters/${item.id}`)} />
+                            <Eye size={18} onClick={() => navigate(`/dashboard/recruiters/${recruiter.id}`)} />
                           </button>
                           <button className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer">
                             <Ban size={18} />

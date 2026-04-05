@@ -1,37 +1,20 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AuthState } from "./authTypes";
-import { MockUser } from "@/data/mockUser";
+import { AuthUser } from "@/types/auth";
 
-// Get initial state from sessionStorage
-const getInitialState = (): AuthState => {
-  const savedUser = sessionStorage.getItem("auth_user");
-  if (savedUser) {
-    try {
-      const user = JSON.parse(savedUser);
-      return {
-        user,
-        isAuthenticated: true,
-        loading: false,
-        error: null,
-      };
-    } catch {
-      return {
-        user: null,
-        isAuthenticated: false,
-        loading: false,
-        error: null,
-      };
-    }
-  }
-  return {
-    user: null,
-    isAuthenticated: false,
-    loading: false,
-    error: null,
-  };
+const initialState: AuthState = {
+  user: null,
+  loading: false,
+  error: null,
+  accessToken: null,
+  refreshToken: null,
 };
 
-const initialState: AuthState = getInitialState();
+interface LoginSuccessPayload {
+  user: AuthUser;
+  accessToken: string;
+  refreshToken: string;
+}
 
 const authSlice = createSlice({
   name: "auth",
@@ -43,28 +26,25 @@ const authSlice = createSlice({
       state.error = null;
     },
     // đăng nhập thành công
-    loginSuccess: (state, action: PayloadAction<MockUser>) => {
-      state.user = action.payload;
-      state.isAuthenticated = true;
+    loginSuccess: (state, action: PayloadAction<LoginSuccessPayload>) => {
+      state.user = action.payload.user;
+      state.accessToken = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken;
       state.loading = false; 
       state.error = null;
-      // Save to sessionStorage
-      sessionStorage.setItem("auth_user", JSON.stringify(action.payload));
     },
     // có lỗi
     loginFailure: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
-      state.isAuthenticated = false;
       state.loading = false; 
     },
     // đăng xuất
     logout: (state) => {
       state.user = null;
-      state.isAuthenticated = false;
       state.loading = false;
       state.error = null;
-      // Clear from sessionStorage
-      sessionStorage.removeItem("auth_user");
+      state.accessToken = null;
+      state.refreshToken = null;
     },
   },
 });

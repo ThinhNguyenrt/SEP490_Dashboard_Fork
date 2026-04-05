@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Ban,
   Trash2,
@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useParams } from "react-router-dom";
-import { allUsers } from "@/data/allUser";
+import { Employee } from "@/types/user";
 const MOCK_POSTS = [
   {
     id: "p1",
@@ -199,14 +199,27 @@ const CommunityTab = () => (
 // --- Main Page Component ---
 const UserProfileManagement = () => {
   const { id } = useParams(); // Lấy ID từ URL
+  const userId = Number(id);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Portfolio");
-
-  // Tìm thông tin user dựa trên ID
-  const user = allUsers.find((u) => u.id === id);
+  const [userProfile, setUserProfile] = useState<Employee>();
+  const fetchUserById = async () => {
+    try {
+      const response = await fetch(
+        `https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Employee/${userId}`,
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfile(data);
+      }
+    } catch (error) {}
+  };
+  useEffect(() => {
+    fetchUserById();
+  }, []);
 
   // Nếu không tìm thấy user (phòng trường hợp ID sai)
-  if (!user) {
+  if (!userProfile) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <p>Không tìm thấy người dùng!</p>
@@ -233,12 +246,23 @@ const UserProfileManagement = () => {
         {/* CỘT TRÁI: USER CARD - Sử dụng sticky để giữ nguyên */}
         <aside className="col-span-4 sticky top-0 h-fit">
           <div className="bg-white rounded-2xl shadow-sm border-2 border-white overflow-hidden pb-8">
-            <div className="h-32 bg-blue-500 relative">
+            <div className="h-32 relative overflow-visible">
+              {/* Phần Cover Image */}
+              <img
+                src={userProfile.coverImage}
+                alt="cover"
+                className="w-full h-full object-cover bg-slate-200" // bg-slate-200 để hiện màu nền nhẹ nếu ảnh chưa tải xong
+              />
+
+              {/* Lớp phủ nhẹ (tùy chọn) để avatar nổi bật hơn */}
+              <div className="absolute inset-0 bg-black/10"></div>
+
+              {/* Phần Avatar (giữ nguyên logic của bạn) */}
               <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
                 <div className="relative">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
-                    className="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-white"
+                    src={userProfile.avatar}
+                    className="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-white object-cover"
                     alt="avatar"
                   />
                   <div className="absolute bottom-1 right-2 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
@@ -248,13 +272,13 @@ const UserProfileManagement = () => {
 
             <div className="mt-16 text-center px-6">
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-                Alex Rivers
+                {userProfile.name}
               </h2>
               <p className="text-sm font-bold text-slate-400">
-                alex.rivers@design.com
+                {userProfile.name} {/* {user.email} {} */}
               </p>
               <span className="inline-block mt-3 px-4 py-1 bg-emerald-50 text-emerald-500 text-[10px] font-black uppercase rounded-full">
-                Hoạt động
+                {userProfile.name} {/* {user.status} {} */}
               </span>
 
               <div className="grid grid-cols-2 gap-3 mt-8">

@@ -80,10 +80,10 @@ const JobPostManagement = () => {
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#f8fafd] p-8 animate-in fade-in duration-500">
+    <div className="flex-1 min-h-screen bg-[#f8fafd] p-4 animate-in fade-in duration-500">
       
       {/* 1. Stats Cards Area */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <StatCard label="Tổng bài đăng" value="1,250" subValue="+5.2%" icon={FileText} color="blue" />
         <StatCard label="Hồ sơ chờ duyệt" value="45" icon={Clock} color="orange" isAlert />
         <StatCard label="Vi phạm" value="12" subValue="Cần xử lý ngay" icon={AlertCircle} color="red" />

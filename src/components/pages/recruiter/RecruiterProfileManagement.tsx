@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Ban,
@@ -19,9 +19,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  allRecruiters,
-} from "@/data/allRecruiters";
+import { Recruiter } from "@/types/user";
 const MOCK_POSTS = [
   {
     id: "p1",
@@ -202,11 +200,26 @@ const JobPostsTab = () => {
 
 const RecruiterProfileManagement = () => {
   const [activeTab, setActiveTab] = useState("Bài đăng tuyển dụng");
-
+  const [recruiterProfile, setRecruiterProfile] = useState<Recruiter>();
   const { id } = useParams(); // Lấy ID từ URL
+  const userId = Number(id);
   const navigate = useNavigate();
-  const recruiter = allRecruiters.find((u) => u.id === id);
-  if (!recruiter) {
+    const fetchRecruiterById = async () => {
+      try {
+        const response = await fetch(
+          `https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Company/${userId}`,
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setRecruiterProfile(data);
+        }
+      } catch (error) {}
+    };
+    useEffect(() => {
+      fetchRecruiterById();
+    }, []);
+  
+  if (!recruiterProfile) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-[#f8fafd]">
         <p className="text-slate-400 font-bold mb-4">
@@ -237,7 +250,7 @@ const RecruiterProfileManagement = () => {
           {/* Banner động theo recruiter.bannerUrl */}
           <div
             className="h-48 bg-cover bg-center transition-all duration-700"
-            style={{ backgroundImage: `url(${recruiter.bannerUrl})` }}
+            style={{ backgroundImage: `url(${recruiterProfile.coverImage})` }}
           />
 
           <div className="px-10 pb-8 relative">
@@ -246,7 +259,7 @@ const RecruiterProfileManagement = () => {
               <div className="relative -mt-12 shrink-0">
                 <div className="w-32 h-32 rounded-2xl bg-slate-900 border-[6px] border-white shadow-xl flex items-center justify-center p-4">
                   <img
-                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${recruiter.logoSeed}`}
+                    src={recruiterProfile.avatar}
                     alt="logo"
                     className="w-full h-full object-contain rounded-lg"
                   />
@@ -258,21 +271,21 @@ const RecruiterProfileManagement = () => {
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
                     <h2 className="text-2xl font-black text-slate-800 tracking-tight uppercase">
-                      {recruiter.name}
+                      {recruiterProfile.companyName}
                     </h2>
                     <span
                       className={cn(
                         "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm",
-                        recruiter.status === "Hoạt động"
+                        recruiterProfile.companyName === "Hoạt động"
                           ? "bg-emerald-50 text-emerald-500"
                           : "bg-orange-50 text-orange-500",
                       )}
                     >
-                      {recruiter.status}
+                      {recruiterProfile.companyName} {/* {user.status} {} */}
                     </span>
                   </div>
                   <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-2xl">
-                    {recruiter.description}
+                    {recruiterProfile.description}
                   </p>
                 </div>
                 <button className="flex items-center gap-2 px-6 py-2.5 bg-red-50 text-red-500 rounded-xl text-[13px] font-black hover:bg-red-100 transition-all border border-red-100 cursor-pointer">
@@ -285,22 +298,22 @@ const RecruiterProfileManagement = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-10 pt-8 border-t border-slate-50">
               <DetailBlock
                 label="Lĩnh vực"
-                value={recruiter.industry}
+                value={recruiterProfile.activityField}
                 icon={Globe}
               />
               <DetailBlock
                 label="Địa chỉ"
-                value={recruiter.location}
+                value={recruiterProfile.address}
                 icon={MapPin}
               />
               <DetailBlock
                 label="Mã số thuế"
-                value={recruiter.taxId}
+                value={recruiterProfile.taxIdentification}
                 icon={Hash}
               />
               <DetailBlock
                 label="Email liên hệ"
-                value={recruiter.email}
+                value={recruiterProfile.companyName}
                 icon={Mail}
               />
             </div>
@@ -349,15 +362,15 @@ const RecruiterProfileManagement = () => {
               </p>
 
               <div className="bg-orange-50/50 rounded-2xl p-5 border border-orange-100 mb-6">
-                <h5 className="text-lg font-black text-orange-600 leading-none">
+                <h5 className="text-lg font-black text-blue-600 leading-none">
                   Premium
                 </h5>
-                <p className="text-[11px] text-orange-400 font-bold mt-2 italic flex items-center gap-1">
+                <p className="text-[11px] text-blue-400 font-bold mt-2 italic flex items-center gap-1">
                   Hết hạn: 1/1/2026 <RefreshCw size={12} />
                 </p>
               </div>
 
-              <button className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-black flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition-all cursor-pointer">
+              <button className="w-full py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-black flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition-all cursor-pointer">
                 <RefreshCw size={18} /> Gia hạn ngay
               </button>
             </div>
