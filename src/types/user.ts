@@ -3,23 +3,23 @@ export interface Employee {
   userId: number;
   name: string;
   phone: string;
-  // email: string;
-  // status: "Hoạt động" | "Bị khóa";
-  // createAt: string;
+  email: string;
+  status: "Active" | "Locked";
+  createAt: string;
   coverImage: string;
   avatar: string;
 }
 export interface Recruiter {
-    id: string;
-    userId: string;
-    companyName: string;
-    activityField: string;
-    coverImage: string;
-    avatar: string;
-    taxIdentification: string;
-    address: string;
-    description: string;
-      // email: string;
-  // status: "Hoạt động" | "Bị khóa";
-  // createAt: string;
+  id: number;
+  userId: number;
+  companyName: string;
+  activityField: string;
+  coverImage: string;
+  avatar: string;
+  taxIdentification: string;
+  address: string;
+  description: string;
+  email: string;
+  status: "Active" | "Locked";
+  createAt: string;
 }

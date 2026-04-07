@@ -13,126 +13,42 @@ import {
   Code2,
   Palette,
   Terminal,
-  ArrowLeft,
-  Heart,
-  Share2,
-  Trash2,
+  ArrowLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Recruiter } from "@/types/user";
-const MOCK_POSTS = [
-  {
-    id: "p1",
-    author: "Nguyễn Văn A",
-    date: "24/5/2024",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
-    content:
-      "Hôm nay thời tiết thật đẹp để đi dạo quanh hồ Hoàn Kiếm. Cảm giác không khí trong lành và nhịp sống chậm lại thật là tuyệt vời! Mọi người đã có kế hoạch gì cho cuối tuần chưa? 🌿☀️ #Hanoi #Relaxing",
-    image: null, // Có thể thay bằng link ảnh thật
-    likes: 124,
-    comments: 18,
-  },
-  {
-    id: "p2",
-    author: "Lê Thị Ngọc",
-    date: "25/5/2024",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ngooc",
-    content:
-      "Vừa hoàn thành dự án React đầu tay cùng SkillSnap! Một hành trình đầy thử thách nhưng thành quả rất xứng đáng. Cảm ơn mọi người đã hỗ trợ nhiệt tình. 🚀💻 #Frontend #Developer",
-    image:
-      "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=1000",
-    likes: 256,
-    comments: 42,
-  },
-];
-const CommunityTab = () => (
-  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-    {MOCK_POSTS.map((post) => (
-      <div
-        key={post.id}
-        className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
-      >
-        {/* Header: Avatar & Info */}
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex gap-3">
-            <div className="w-10 h-10 rounded-[1.25rem] bg-slate-100 overflow-hidden border-2 border-white shadow-sm">
-              <img
-                src={post.avatar}
-                alt={post.author}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div>
-              <h4 className="text-sm font-black text-slate-800 leading-none">
-                {post.author}
-              </h4>
-              <p className="text-[11px] text-slate-400 mt-1 font-bold uppercase tracking-wider">
-                {post.date}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-1">
-            {/* <button
-              className="p-2 text-slate-300 hover:text-slate-600 transition-colors"
-              title="Khóa bài viết"
-            >
-              <Ban size={18} />
-            </button> */}
-            <button
-              className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-              title="Xóa bài viết"
-            >
-              <Trash2 size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <p className="text-[14px] text-slate-600 leading-relaxed mb-4 whitespace-pre-wrap">
-          {post.content}
-        </p>
-
-        {/* Media Section: Hiển thị ảnh nếu có, ngược lại hiện Placeholder */}
-        <div className="aspect-video bg-slate-50 rounded-[1.25rem] border border-slate-100 flex items-center justify-center mb-4 overflow-hidden relative group">
-          {post.image ? (
-            <img
-              src={post.image}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              alt="post media"
-            />
-          ) : (
-            <div className="opacity-10 grayscale flex flex-col items-center gap-2">
-              <img
-                src="/product-logo.png"
-                className="w-12 h-12"
-                alt="placeholder"
-              />
-              <span className="text-[10px] font-black uppercase tracking-widest">
-                SkillSnap Community
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Interaction Footer */}
-        <div className="flex items-center gap-6 pt-3 border-t border-slate-50">
-          <button className="flex items-center gap-2 text-slate-400 hover:text-blue-500 text-[13px] font-bold transition-colors cursor-pointer">
-            <Heart size={18} /> {post.likes}
-          </button>
-          <button className="flex items-center gap-2 text-slate-400 hover:text-blue-500 text-[13px] font-bold transition-colors cursor-pointer">
-            <MessageSquare size={18} /> {post.comments}
-          </button>
-          <button className="text-slate-400 ml-auto hover:text-slate-800 transition-colors cursor-pointer">
-            <Share2 size={18} />
-          </button>
-        </div>
-      </div>
-    ))}
-  </div>
-);
+import { handleEnumStatus } from "@/utils/FormatTime";
+import { CommunityTab } from "../user/CommunityTab";
+import { notify } from "@/lib/toast";
+import { useAppSelector } from "@/store/hook";
+// const MOCK_POSTS = [
+//   {
+//     id: "p1",
+//     author: "Nguyễn Văn A",
+//     date: "24/5/2024",
+//     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
+//     content:
+//       "Hôm nay thời tiết thật đẹp để đi dạo quanh hồ Hoàn Kiếm. Cảm giác không khí trong lành và nhịp sống chậm lại thật là tuyệt vời! Mọi người đã có kế hoạch gì cho cuối tuần chưa? 🌿☀️ #Hanoi #Relaxing",
+//     image: null, // Có thể thay bằng link ảnh thật
+//     likes: 124,
+//     comments: 18,
+//   },
+//   {
+//     id: "p2",
+//     author: "Lê Thị Ngọc",
+//     date: "25/5/2024",
+//     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ngooc",
+//     content:
+//       "Vừa hoàn thành dự án React đầu tay cùng SkillSnap! Một hành trình đầy thử thách nhưng thành quả rất xứng đáng. Cảm ơn mọi người đã hỗ trợ nhiệt tình. 🚀💻 #Frontend #Developer",
+//     image:
+//       "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=1000",
+//     likes: 256,
+//     comments: 42,
+//   },
+// ];
 // --- Sub-Components: Tab Tin tuyển dụng ---
 const JobPostsTab = () => {
+
   const jobs = [
     {
       id: 1,
@@ -204,21 +120,22 @@ const RecruiterProfileManagement = () => {
   const { id } = useParams(); // Lấy ID từ URL
   const userId = Number(id);
   const navigate = useNavigate();
-    const fetchRecruiterById = async () => {
-      try {
-        const response = await fetch(
-          `https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Company/${userId}`,
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setRecruiterProfile(data);
-        }
-      } catch (error) {}
-    };
-    useEffect(() => {
-      fetchRecruiterById();
-    }, []);
-  
+  const { accessToken } = useAppSelector((state) => state.auth);
+  const fetchRecruiterById = async () => {
+    try {
+      const response = await fetch(
+        `https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Company/${userId}`,
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setRecruiterProfile(data);
+      }
+    } catch (error) {}
+  };
+  useEffect(() => {
+    fetchRecruiterById();
+  }, []);
+
   if (!recruiterProfile) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-[#f8fafd]">
@@ -234,7 +151,24 @@ const RecruiterProfileManagement = () => {
       </div>
     );
   }
+  const handleLockUser = async (userId: number) => {
+    try {
+      const response = await fetch(
+        `https://auth-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Auth/lock-user/${userId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
 
+      if (response.ok) {
+        notify.success("Xóa bài viết thành công");
+        fetchRecruiterById();
+      } else {
+        notify.error("Không thể xóa bài viết");
+      }
+    } catch (error) {}
+  };
   return (
     <div className="p-8 flex-1 min-h-screen bg-[#f8fafd] overflow-y-auto no-scrollbar">
       {/* Nút quay lại cho tiện quản lý */}
@@ -276,19 +210,23 @@ const RecruiterProfileManagement = () => {
                     <span
                       className={cn(
                         "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm",
-                        recruiterProfile.companyName === "Hoạt động"
+                        recruiterProfile.status === "Active"
                           ? "bg-emerald-50 text-emerald-500"
                           : "bg-orange-50 text-orange-500",
                       )}
                     >
-                      {recruiterProfile.companyName} {/* {user.status} {} */}
+                      {handleEnumStatus(recruiterProfile.status)}{" "}
+                      {/* {user.status} {} */}
                     </span>
                   </div>
                   <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-2xl">
                     {recruiterProfile.description}
                   </p>
                 </div>
-                <button className="flex items-center gap-2 px-6 py-2.5 bg-red-50 text-red-500 rounded-xl text-[13px] font-black hover:bg-red-100 transition-all border border-red-100 cursor-pointer">
+                <button
+                  className="flex items-center gap-2 px-6 py-2.5 bg-red-50 text-red-500 rounded-xl text-[13px] font-black hover:bg-red-100 transition-all border border-red-100 cursor-pointer"
+                  onClick={() => handleLockUser(recruiterProfile.userId)}
+                >
                   <Ban size={16} /> Khóa tài khoản
                 </button>
               </div>
@@ -313,7 +251,7 @@ const RecruiterProfileManagement = () => {
               />
               <DetailBlock
                 label="Email liên hệ"
-                value={recruiterProfile.companyName}
+                value={recruiterProfile.email}
                 icon={Mail}
               />
             </div>
@@ -349,8 +287,12 @@ const RecruiterProfileManagement = () => {
             </div>
 
             <div className="p-8 bg-slate-50/20 flex-1">
-              {activeTab === "Bài đăng tuyển dụng" && <JobPostsTab />}
-              {activeTab === "Cộng đồng" && <CommunityTab />}
+              {activeTab === "Bài đăng tuyển dụng" && (
+                <JobPostsTab />
+              )}
+              {activeTab === "Cộng đồng" && (
+                <CommunityTab userId={recruiterProfile.userId} />
+              )}
             </div>
           </main>
 

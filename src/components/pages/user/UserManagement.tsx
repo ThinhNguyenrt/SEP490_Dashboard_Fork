@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { Employee } from "@/types/user";
-
+import { formatTimeAgo, handleEnumStatus } from "@/utils/FormatTime";
 
 interface PaginationResponse {
   data: Employee[];
@@ -61,6 +61,7 @@ const UserManagement = () => {
   const loadData = async () => {
     setLoading(true);
     const response = await fetchUsersFromBackend(currentPage, pageSize);
+    console.log("res data: ", response.data);
     setUsers(response.data);
     setTotalItems(response.totalItems);
     setTotalPages(response.totalPages);
@@ -184,22 +185,22 @@ const UserManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-[13px] font-medium text-slate-500">
-                    {user.name} {/* {user.email} {} */}
+                    {user.email} {/* {user.email} {} */}
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={cn(
                         "px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-tighter",
-                        user.name === "Hoạt động"
+                        user.status === "Active"
                           ? "bg-emerald-50 text-emerald-500"
                           : "bg-red-50 text-red-500",
                       )}
                     >
-                      {user.name} {/* {user.status} {} */}
+                      {handleEnumStatus(user.status)} {/* {user.status} {} */}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-[13px] font-bold text-slate-400">
-                    {user.name} {/* {user.createAt} {} */}
+                    {formatTimeAgo(user.createAt)} {/* {user.createAt} {} */}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
@@ -214,12 +215,11 @@ const UserManagement = () => {
                       <button
                         className={cn(
                           "p-2 rounded-lg transition-all cursor-pointer",
-                          user.name === "Bị khóa"
+                          user.status === "Locked"
                             ? "text-red-500 bg-red-50"
                             : "text-slate-400 hover:text-red-500 hover:bg-red-50",
                         )}
                       >
-                        {/* {user.status} {} */}
                         <Ban size={18} />
                       </button>
                     </div>
