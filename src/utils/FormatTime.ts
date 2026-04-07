@@ -1,0 +1,33 @@
+export const formatTimeAgo = (dateString: string): string => {
+    const now = new Date();
+    const date = new Date(dateString);
+
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+
+    if (diffSec < 60) return "Vừa xong";
+    if (diffMin < 60) return `${diffMin} phút trước`;
+    if (diffHour < 24) return `${diffHour} giờ trước`;
+    if (diffDay === 1) return "Hôm qua";
+    if (diffDay < 7) return `${diffDay} ngày trước`;
+
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  export const handleEnumStatus = (status: string): string => {
+    switch (status) {
+      case "Active":
+        return "Hoạt động";
+      case "Locked":
+        return "Bị khóa";
+      default:
+        return "Không xác định";
+    }
+  };

@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { Recruiter } from "@/types/user";
+import { handleEnumStatus } from "@/utils/FormatTime";
 
 interface PaginationResponse {
   data: Recruiter[];
@@ -34,10 +35,12 @@ const fetchRecruitersFromBackend = async (
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   const start = (pageNum - 1) * pageSize;
-  const response = await fetch("https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Company");
+  const response = await fetch(
+    "https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Company",
+  );
   const responseRecruiters = await response.json();
   const data = responseRecruiters.slice(start, start + pageSize);
-  
+
   return {
     data,
     totalItems: responseRecruiters.length,
@@ -186,10 +189,7 @@ const RecruiterManagement = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-white shrink-0 shadow-inner overflow-hidden uppercase font-black text-[10px]">
-                        <img
-                          src={recruiter.avatar}
-                          alt="logo"
-                        />
+                        <img src={recruiter.avatar} alt="logo" />
                       </div>
                       <div>
                         <p className="text-[14px] font-black text-slate-700 leading-tight">
@@ -202,20 +202,20 @@ const RecruiterManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-[13px] font-medium text-slate-500">
-                    {recruiter.companyName} {/* {user.email} {} */}
+                    {recruiter.email} {/* {user.email} {} */}
                   </td>
                   <td className="px-6 py-4">
                     <span className="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                      {recruiter.activityField}
+                      {recruiter.activityField || "Không có"}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div
                       className={cn(
                         "flex items-center gap-2 px-3 py-1.5 rounded-full w-fit text-[11px] font-black uppercase tracking-tighter",
-                        recruiter.companyName === "Hoạt động"
+                        recruiter.status === "Active"
                           ? "bg-emerald-50 text-emerald-500"
-                          : recruiter.companyName === "Đang chờ duyệt"
+                          : recruiter.status === "Locked"
                             ? "bg-slate-100 text-slate-500"
                             : "bg-red-50 text-red-500",
                       )}
@@ -223,19 +223,20 @@ const RecruiterManagement = () => {
                       <div
                         className={cn(
                           "w-1.5 h-1.5 rounded-full",
-                          recruiter.companyName === "Hoạt động"
+                          recruiter.status === "Active"
                             ? "bg-emerald-500"
-                            : recruiter.companyName === "Đang chờ duyệt"
+                            : recruiter.status === "Locked"
                               ? "bg-slate-400"
                               : "bg-red-500",
                         )}
                       />
-                      {recruiter.companyName}  {/* {user.status} {} */}
+                      {handleEnumStatus(recruiter.status)}{" "}
+                      {/* {user.status} {} */}
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
-                      {recruiter.companyName === "Đang chờ duyệt" ? (
+                      {recruiter.status === "Active" ? (
                         <>
                           <button className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all cursor-pointer">
                             <CheckCircle2 size={18} />
@@ -244,17 +245,36 @@ const RecruiterManagement = () => {
                             <X size={18} />
                           </button>
                           <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-all cursor-pointer">
-                            <Eye size={18} onClick={() => navigate(`/dashboard/recruiters/${recruiter.id}`)} />
+                            <Eye
+                              size={18}
+                              onClick={() =>
+                                navigate(
+                                  `/dashboard/recruiters/${recruiter.id}`,
+                                )
+                              }
+                            />
                           </button>
                         </>
                       ) : (
                         <>
                           <button className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all cursor-pointer">
-                            <Eye size={18} onClick={() => navigate(`/dashboard/recruiters/${recruiter.id}`)} />
+                            <Eye
+                              size={18}
+                              onClick={() =>
+                                navigate(
+                                  `/dashboard/recruiters/${recruiter.id}`,
+                                )
+                              }
+                            />
                           </button>
                           <button className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer">
                             <Ban size={18} />
                           </button>
+                          {recruiter.status === "Locked"} ? (
+                          <button className="p-2 text-slate-400 bg-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer">
+                            <Ban size={18} />
+                          </button>
+                          )
                         </>
                       )}
                     </div>
