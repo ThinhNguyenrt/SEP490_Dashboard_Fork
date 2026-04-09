@@ -20,6 +20,7 @@ import { CommunityTab } from "./CommunityTab";
 import { useAppSelector } from "@/store/hook";
 import { notify } from "@/lib/toast";
 import UpdateUserModal from "./UpdateUserModal";
+import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 // const MOCK_POSTS = [
 //   {
 //     id: "p1",
@@ -122,7 +123,8 @@ const UserProfileManagement = () => {
   const [userProfile, setUserProfile] = useState<Employee>();
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const { accessToken } = useAppSelector((state) => state.auth);
-
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const fetchUserById = async () => {
     try {
       const response = await fetch(
@@ -163,18 +165,39 @@ const UserProfileManagement = () => {
       );
 
       if (response.ok) {
-        notify.success("Xóa bài viết thành công");
+        notify.success("Khóa người dùng thành công");
         fetchUserById();
       } else {
-        notify.error("Không thể xóa bài viết");
+        notify.error("Không thể khóa người dùng");
       }
     } catch (error) {}
   };
   const onSuccess = () => {
     fetchUserById();
   };
+  const handleDeleteUser = async (userId: number) => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(
+        `https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Employee/${userId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
+
+      if (response.ok) {
+        notify.success("Xóa người dùng thành công");
+        navigate("/dashboard/users");
+      }
+    } catch (error) {
+      notify.error("Không thể xóa người dùng");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
   return (
-    <div className="p-8 w-full h-screen bg-[#f8fafd] flex flex-col">
+    <div className="p-4 w-full h-screen bg-[#f8fafd] flex flex-col">
       {/* Nút quay lại cho tiện quản lý */}
       <button
         onClick={() => navigate(-1)}
@@ -189,7 +212,7 @@ const UserProfileManagement = () => {
             <div className="h-32 relative overflow-visible">
               {/* Phần Cover Image */}
               <img
-                src={userProfile.coverImage}
+                src={userProfile.coverImage || "/default"}
                 alt="cover"
                 className="w-full h-full object-cover bg-slate-200" // bg-slate-200 để hiện màu nền nhẹ nếu ảnh chưa tải xong
               />
@@ -201,7 +224,7 @@ const UserProfileManagement = () => {
               <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
                 <div className="relative">
                   <img
-                    src={userProfile.avatar}
+                    src={userProfile.avatar || "/default"}
                     className="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-white object-cover"
                     alt="avatar"
                   />
@@ -217,13 +240,21 @@ const UserProfileManagement = () => {
               <p className="text-sm font-bold text-slate-400">
                 {userProfile.email} {/* {user.email} {} */}
               </p>
-              <span className="inline-block mt-3 px-4 py-1 bg-emerald-50 text-emerald-500 text-[10px] font-black uppercase rounded-full">
-                {handleEnumStatus(userProfile.status)} {/* {user.status} {} */}
-              </span>
+              {userProfile.status === "Locked" ? (
+                <span className="inline-block mt-3 px-4 py-1 bg-emerald-50 text-red-500 text-[10px] font-black uppercase rounded-full">
+                  {handleEnumStatus(userProfile.status)}{" "}
+                  {/* {user.status} {} */}
+                </span>
+              ) : (
+                <span className="inline-block mt-3 px-4 py-1 bg-emerald-50 text-emerald-500 text-[10px] font-black uppercase rounded-full">
+                  {handleEnumStatus(userProfile.status)}{" "}
+                  {/* {user.status} {} */}
+                </span>
+              )}
 
               <div className="grid grid-cols-2 gap-3 mt-8">
                 <button
-                  className="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-xl text-[13px] font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all cursor-pointer"
+                  className="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-xl text-[13px] font-black cursor-pointer"
                   onClick={() => setIsUpdateModalOpen(true)}
                 >
                   <Edit3 size={16} /> Sửa hồ sơ
@@ -232,10 +263,19 @@ const UserProfileManagement = () => {
                   className="flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-100 transition-all cursor-pointer"
                   onClick={() => handleLockUser(userProfile.userId)}
                 >
-                  <Ban size={16} /> Khóa
+                  {userProfile.status === "Locked" ? (
+                    <div className="text-red-500 bg-red-50">
+                      <Ban size={16} /> Mở khóa
+                    </div>
+                  ) : (
+                    <div className="text-slate-400 hover:text-red-500 hover:bg-red-50">
+                      <Ban size={16} /> Khóa
+                    </div>
+                  )}
                 </button>
                 <button
                   className="flex items-center text-red-400 justify-center gap-2 py-3 bg-slate-50 rounded-xl text-[13px] font-bold hover:bg-red-100 transition-all cursor-pointer"
+                  onClick={() => setIsDeleteModalOpen(true)}
                 >
                   <Trash2 size={16} className="text-red-400" /> Xóa
                 </button>
@@ -311,6 +351,14 @@ const UserProfileManagement = () => {
         onClose={() => setIsUpdateModalOpen(false)}
         userProfile={userProfile}
         onSuccess={onSuccess}
+      />
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={() => handleDeleteUser(userProfile.id)}
+        isLoading={isDeleting}
+        title="Xóa người dùng?"
+        description={`Bạn có chắc chắn muốn xóa ${userProfile.name}? Dữ liệu của người dùng này sẽ bị mất vĩnh viễn.`}
       />
     </div>
   );
