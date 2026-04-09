@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Camera, Image as ImageIcon, Loader2 } from "lucide-react";
+import { X, Camera, Image as ImageIcon, Loader2, User, Phone as PhoneIcon, Tag } from "lucide-react";
 import { useAppSelector } from "@/store/hook";
 import { notify } from "@/lib/toast";
 import { Employee } from "@/types/user";
@@ -8,17 +8,14 @@ interface UpdateUserModalProps {
   isOpen: boolean;
   userProfile: Employee;
   onClose: () => void;
-  onSuccess?: () => void; // Callback để load lại data sau khi update
+  onSuccess?: () => void;
 }
 
 const UpdateUserModal = ({ isOpen, userProfile, onClose, onSuccess }: UpdateUserModalProps) => {
-  // --- States cho Form ---
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [avatar, setAvatar] = useState<File | null>(null);
   const [coverImage, setCoverImage] = useState<File | null>(null);
-  
-  // --- Preview States (để hiển thị ảnh tạm thời trước khi upload) ---
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [coverPreview, setCoverPreview] = useState<string>("");
   
@@ -38,7 +35,6 @@ const UpdateUserModal = ({ isOpen, userProfile, onClose, onSuccess }: UpdateUser
 
   if (!isOpen) return null;
 
-  // --- Logic xử lý chọn ảnh ---
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
     const file = e.target.files?.[0];
     if (file) {
@@ -56,29 +52,18 @@ const UpdateUserModal = ({ isOpen, userProfile, onClose, onSuccess }: UpdateUser
     }
   };
 
-  // --- Logic Gọi API ---
   const handleUpdate = async () => {
     setIsLoading(true);
     try {
       const formData = new FormData();
-      
-      // Khớp chính xác với các Key trong ảnh Swagger của bạn
       formData.append("Name", name);
       formData.append("Phone", phone);
-      
-      if (avatar) {
-        formData.append("Avatar", avatar);
-      }
-      if (coverImage) {
-        formData.append("CoverImage", coverImage);
-      }
+      if (avatar) formData.append("Avatar", avatar);
+      if (coverImage) formData.append("CoverImage", coverImage);
 
       const response = await fetch(`https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Employee/${userProfile.id}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          // Lưu ý: Không set 'Content-Type' khi gửi FormData, trình duyệt sẽ tự set kèm boundary
-        },
+        headers: { Authorization: `Bearer ${accessToken}` },
         body: formData,
       });
 
@@ -98,87 +83,120 @@ const UpdateUserModal = ({ isOpen, userProfile, onClose, onSuccess }: UpdateUser
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-xl font-bold">Chỉnh sửa thông tin</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full">
-            <X className="w-6 h-6" />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300"
+        onClick={onClose}
+      />
+
+      {/* Modal Content */}
+      <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+        
+        {/* Header - Fixed */}
+        <div className="flex items-center justify-between p-8 pb-4 bg-white z-20">
+          <div>
+            <h2 className="text-2xl font-black text-slate-800">Chỉnh sửa hồ sơ</h2>
+            <p className="text-sm text-slate-400 font-medium">Cập nhật thông tin cá nhân của bạn</p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-3 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-2xl transition-all cursor-pointer"
+          >
+            <X size={24} />
           </button>
         </div>
 
-        <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+        {/* Scrollable Body */}
+        <div className="flex-1 overflow-y-auto px-8 py-2 custom-scrollbar">
+          
           {/* Cover Image Section */}
-          <div className="relative h-32 bg-gray-200 rounded-lg overflow-hidden group">
-            {coverPreview && <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />}
-            <label className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
-              <div className="bg-white/80 p-2 rounded-full shadow">
-                <ImageIcon className="w-5 h-5 text-gray-700" />
+          <div className="relative h-40 bg-slate-100 rounded-[2rem] overflow-hidden group mb-16 border-4 border-slate-50">
+            {coverPreview ? (
+              <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem]">
+                <ImageIcon className="w-8 h-8 text-slate-300" />
+              </div>
+            )}
+            
+            <label className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center">
+              <div className="bg-white px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 text-sm font-bold text-slate-700">
+                <Camera size={16} /> Thay đổi ảnh bìa
               </div>
               <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'cover')} />
             </label>
-            <span className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-0.5 rounded">Ảnh bìa</span>
-          </div>
 
-          {/* Avatar Section */}
-          <div className="flex flex-col items-center -mt-12 relative z-10">
-            <div className="relative group">
-              <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden bg-gray-100 shadow-md">
-                {avatarPreview ? (
-                  <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">User</div>
-                )}
+            {/* Avatar Section - Trùng lên ảnh bìa */}
+            <div className="absolute -bottom-2 left-6">
+              <div className="relative group/avatar">
+                <div className="w-28 h-28 rounded-[2rem] border-8 border-white bg-slate-100 shadow-xl shadow-slate-200 overflow-hidden">
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 bg-blue-50">
+                      <User size={40} className="text-blue-200" />
+                    </div>
+                  )}
+                </div>
+                <label className="absolute inset-0 bg-blue-600/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer rounded-[2rem] flex items-center justify-center">
+                  <Camera className="text-white" size={24} />
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'avatar')} />
+                </label>
               </div>
-              <label className="absolute bottom-0 right-0 p-1.5 bg-blue-600 rounded-full text-white cursor-pointer hover:bg-blue-700 shadow-lg border-2 border-white">
-                <Camera className="w-4 h-4" />
-                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'avatar')} />
-              </label>
             </div>
           </div>
 
-          {/* Input Fields */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Nhập tên của bạn..."
-              />
+          {/* Form Inputs */}
+          <div className="space-y-6 pb-8">
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Họ và tên</label>
+              <div className="relative group">
+                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold outline-none focus:bg-white focus:border-blue-500/20 transition-all"
+                  placeholder="Nhập tên của bạn..."
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
-              <input
-                type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Nhập số điện thoại..."
-              />
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Số điện thoại</label>
+              <div className="relative group">
+                <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold outline-none focus:bg-white focus:border-blue-500/20 transition-all"
+                  placeholder="09xx xxx xxx"
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t flex gap-3">
+        {/* Footer - Fixed */}
+        <div className="p-8 pt-4 bg-slate-50/50 border-t border-slate-50 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+            className="flex-1 py-4 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-2xl transition-all cursor-pointer"
           >
-            Hủy
+            Hủy bỏ
           </button>
           <button
             onClick={handleUpdate}
             disabled={isLoading}
-            className="flex-1 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+            className="flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-2xl shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           >
-            {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-            Lưu thay đổi
+            {isLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              "Lưu thay đổi"
+            )}
           </button>
         </div>
       </div>

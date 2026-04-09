@@ -27,7 +27,7 @@ export default function LoginPage() {
             <img
               src={LoginPlaceholder}
               alt="Illustration"
-              className="z-10 w-full h-auto object-contain transition-all duration-500 animate-in fade-in zoom-in duration-700"
+              className="w-full h-auto object-contain transition-all duration-500 animate-in fade-in zoom-in duration-700"
             />
           </div>
           <div className="w-full lg:w-1/2 p-8 lg:p-12 bg-white flex flex-col justify-center">

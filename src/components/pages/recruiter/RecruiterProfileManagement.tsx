@@ -170,7 +170,7 @@ const RecruiterProfileManagement = () => {
     } catch (error) {}
   };
   return (
-    <div className="p-8 flex-1 min-h-screen bg-[#f8fafd] overflow-y-auto no-scrollbar">
+    <div className="p-4 flex-1 min-h-screen bg-[#f8fafd] overflow-y-auto no-scrollbar">
       {/* Nút quay lại cho tiện quản lý */}
       <button
         onClick={() => navigate(-1)}
@@ -184,7 +184,7 @@ const RecruiterProfileManagement = () => {
           {/* Banner động theo recruiter.bannerUrl */}
           <div
             className="h-48 bg-cover bg-center transition-all duration-700"
-            style={{ backgroundImage: `url(${recruiterProfile.coverImage})` }}
+            style={{ backgroundImage: `url(${recruiterProfile.coverImage || "/default"})` }}
           />
 
           <div className="px-10 pb-8 relative">
@@ -193,7 +193,7 @@ const RecruiterProfileManagement = () => {
               <div className="relative -mt-12 shrink-0">
                 <div className="w-32 h-32 rounded-2xl bg-slate-900 border-[6px] border-white shadow-xl flex items-center justify-center p-4">
                   <img
-                    src={recruiterProfile.avatar}
+                    src={recruiterProfile.avatar || "/default"}
                     alt="logo"
                     className="w-full h-full object-contain rounded-lg"
                   />

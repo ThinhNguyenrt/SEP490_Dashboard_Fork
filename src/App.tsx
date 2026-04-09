@@ -25,9 +25,12 @@ const UserProfileManagement = lazy(
 const RecruiterProfileManagement = lazy(
   () => import("./components/pages/recruiter/RecruiterProfileManagement"),
 );
+
+
 import { ToastContainer } from "react-toastify";
 
 import LoadingWrapper from "./components/loading/LoadingWrapper";
+import PaymentFailedPage from "./components/pages/subscription/PaymentFailedPage";
 // import Members từ một file page khác bạn sẽ tạo
 
 function App() {
@@ -56,6 +59,7 @@ function App() {
             <Route path="users" element={<UserManagement />} />
             <Route path="users/:id" element={<UserProfileManagement />} />
             <Route path="recruiters" element={<RecruiterManagement />} />
+            <Route path="payment" element={<PaymentFailedPage />} />
             <Route
               path="recruiters/:id"
               element={<RecruiterProfileManagement />}
