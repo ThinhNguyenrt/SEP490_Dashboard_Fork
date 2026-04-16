@@ -17,6 +17,8 @@ import { Employee } from "@/types/user";
 import { formatTimeAgo, handleEnumStatus } from "@/utils/FormatTime";
 import { CustomSelect } from "@/components/common/CustomSelect";
 import { CreateUserModal } from "./CreateUserModal";
+import { notify } from "@/lib/toast";
+import { useAppSelector } from "@/store/hook";
 
 const statusOptions = [
   { label: "Tất cả trạng thái", value: "All" },
@@ -45,6 +47,7 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 5;
+  const { accessToken } = useAppSelector((state) => state.auth);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -57,6 +60,7 @@ const UserManagement = () => {
     try {
       const data = await fetchAllUsers();
       setAllUsers(data);
+      console.log("✅ Dữ liệu người dùng đã tải:", data);
     } catch (error) {
       console.error("Lỗi:", error);
     } finally {
@@ -113,7 +117,42 @@ const UserManagement = () => {
       setCurrentPage(1);
     }
   }, [totalPages, currentPage]);
+  const handleLockUser = async (userId: number) => {
+    try {
+      const response = await fetch(
+        `https://auth-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Auth/lock-user/${userId}`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
 
+      if (response.ok) {
+        notify.success("Khóa người dùng thành công");
+        loadData();
+      } else {
+        notify.error("Không thể khóa người dùng");
+      }
+    } catch (error) {}
+  };
+  const handleUnLockUser = async (userId: number) => {
+    try {
+      const response = await fetch(
+        `https://auth-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Auth/unlock-user/${userId}`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
+
+      if (response.ok) {
+        notify.success("Mở khóa người dùng thành công");
+        loadData();
+      } else {
+        notify.error("Lỗi khi mở khóa người dùng");
+      }
+    } catch (error) {}
+  };
   return (
     <div className="flex-1 min-h-screen bg-[#f7eccd] p-2 animate-in fade-in duration-500">
       {/* 1. Stats Cards */}
@@ -264,16 +303,22 @@ const UserManagement = () => {
                         >
                           <Eye size={18} />
                         </button>
-                        <button
-                          className={cn(
-                            "p-2 rounded-lg transition-all cursor-pointer",
-                            user.status === "Locked"
-                              ? "text-red-500 bg-red-50"
-                              : "text-slate-400 hover:text-red-500 hover:bg-red-50",
-                          )}
-                        >
-                          <Ban size={18} />
-                        </button>
+                        {user.status === "Locked" && (
+                          <button
+                            className="p-2.5 text-red-400 bg-red-50 rounded-xl transition-all cursor-pointer"
+                            onClick={() => handleUnLockUser(user.userId)}
+                          >
+                            <Ban size={18} />
+                          </button>
+                        )}
+                        {user.status === "Active" && (
+                          <button
+                            className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                            onClick={() => handleLockUser(user.userId)}
+                          >
+                            <Ban size={18} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
