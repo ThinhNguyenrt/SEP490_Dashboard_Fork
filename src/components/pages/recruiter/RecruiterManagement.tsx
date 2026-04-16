@@ -10,7 +10,6 @@ import {
   Briefcase,
   ShieldAlert,
   MapPin,
-  CheckCircle2,
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,6 +18,8 @@ import { Recruiter } from "@/types/user";
 import { handleEnumStatus } from "@/utils/FormatTime";
 import { CustomSelect } from "@/components/common/CustomSelect";
 import { CreateUserModal } from "../user/CreateUserModal";
+import { useAppSelector } from "@/store/hook";
+import { notify } from "@/lib/toast";
 
 // Định nghĩa options cho Select
 const statusOptions = [
@@ -43,7 +44,7 @@ const RecruiterManagement = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 5;
-
+  const { accessToken } = useAppSelector((state) => state.auth);
   // --- States Filters ---
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -117,7 +118,42 @@ const RecruiterManagement = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, activityFilter]);
+  const handleLockUser = async (userId: number) => {
+    try {
+      const response = await fetch(
+        `https://auth-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Auth/lock-user/${userId}`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
 
+      if (response.ok) {
+        notify.success("Khóa người dùng thành công");
+        loadData();
+      } else {
+        notify.error("Lỗi khi khóa người dùng");
+      }
+    } catch (error) {}
+  };
+  const handleUnLockUser = async (userId: number) => {
+    try {
+      const response = await fetch(
+        `https://auth-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Auth/unlock-user/${userId}`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
+
+      if (response.ok) {
+        notify.success("Mở khóa người dùng thành công");
+        loadData();
+      } else {
+        notify.error("Lỗi khi mở khóa người dùng");
+      }
+    } catch (error) {}
+  };
   return (
     <div className="flex-1 min-h-screen bg-[#f7eccd] p-2 animate-in fade-in duration-500">
       {/* 1. Header Stats */}
@@ -280,14 +316,25 @@ const RecruiterManagement = () => {
                         >
                           <Eye size={18} />
                         </button>
-                        {recruiter.status === "Active" && (
+                        {/* {recruiter.status === "Active" && (
                           <button className="p-2.5 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all cursor-pointer">
                             <CheckCircle2 size={18} />
                           </button>
+                        )} */}
+                        {recruiter.status === "Locked" && (
+                          <button className="p-2.5 text-red-400 bg-red-50 rounded-xl transition-all cursor-pointer" 
+                            onClick={() => handleUnLockUser(recruiter.userId)}
+                          >
+                            <Ban size={18} />
+                          </button>
                         )}
-                        <button className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer">
-                          <Ban size={18} />
-                        </button>
+                        {recruiter.status === "Active" && (
+                          <button className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                            onClick={() => handleLockUser(recruiter.userId)}
+                          >
+                            <Ban size={18} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

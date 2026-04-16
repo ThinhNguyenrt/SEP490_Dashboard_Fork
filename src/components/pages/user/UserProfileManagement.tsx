@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import {
   Ban,
-  Trash2,
   Edit3,
-  RefreshCw,
   MessageSquare,
   Mail,
   MoreVertical,
-  ShieldCheck,
   FolderKanban,
   ArrowLeft,
 } from "lucide-react";
@@ -20,7 +17,6 @@ import { CommunityTab } from "./CommunityTab";
 import { useAppSelector } from "@/store/hook";
 import { notify } from "@/lib/toast";
 import UpdateUserModal from "./UpdateUserModal";
-import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 // const MOCK_POSTS = [
 //   {
 //     id: "p1",
@@ -123,8 +119,6 @@ const UserProfileManagement = () => {
   const [userProfile, setUserProfile] = useState<Employee>();
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const { accessToken } = useAppSelector((state) => state.auth);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const fetchUserById = async () => {
     try {
       const response = await fetch(
@@ -159,7 +153,7 @@ const UserProfileManagement = () => {
       const response = await fetch(
         `https://auth-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Auth/lock-user/${userId}`,
         {
-          method: "DELETE",
+          method: "PUT",
           headers: { Authorization: `Bearer ${accessToken}` },
         },
       );
@@ -172,32 +166,29 @@ const UserProfileManagement = () => {
       }
     } catch (error) {}
   };
-  const onSuccess = () => {
-    fetchUserById();
-  };
-  const handleDeleteUser = async (userId: number) => {
-    setIsDeleting(true);
+  const handleUnLockUser = async (userId: number) => {
     try {
       const response = await fetch(
-        `https://userprofile-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Employee/${userId}`,
+        `https://auth-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Auth/unlock-user/${userId}`,
         {
-          method: "DELETE",
+          method: "PUT",
           headers: { Authorization: `Bearer ${accessToken}` },
         },
       );
 
       if (response.ok) {
-        notify.success("Xóa người dùng thành công");
-        navigate("/dashboard/users");
+        notify.success("Mở khóa người dùng thành công");
+        fetchUserById();
+      } else {
+        notify.error("Lỗi khi mở khóa người dùng");
       }
-    } catch (error) {
-      notify.error("Không thể xóa người dùng");
-    } finally {
-      setIsDeleting(false);
-    }
+    } catch (error) {}
+  };
+  const onSuccess = () => {
+    fetchUserById();
   };
   return (
-    <div className="p-4 w-full h-screen bg-[#f8fafd] flex flex-col">
+    <div className="p-4 w-full h-screen bg-[#f7eccd] flex flex-col">
       {/* Nút quay lại cho tiện quản lý */}
       <button
         onClick={() => navigate(-1)}
@@ -261,28 +252,27 @@ const UserProfileManagement = () => {
                 </button>
                 <button
                   className="flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-100 transition-all cursor-pointer"
-                  onClick={() => handleLockUser(userProfile.userId)}
                 >
                   {userProfile.status === "Locked" ? (
-                    <div className="text-red-500 bg-red-50">
+                    <div
+                      className="text-red-500 bg-red-50"
+                      onClick={() => handleUnLockUser(userProfile.userId)}
+                    >
                       <Ban size={16} /> Mở khóa
                     </div>
                   ) : (
-                    <div className="text-slate-400 hover:text-red-500 hover:bg-red-50">
+                    <div
+                      className="text-slate-400 hover:text-red-500 hover:bg-red-50"
+                      onClick={() => handleLockUser(userProfile.userId)}
+                    >
                       <Ban size={16} /> Khóa
                     </div>
                   )}
                 </button>
-                <button
-                  className="flex items-center text-red-400 justify-center gap-2 py-3 bg-slate-50 rounded-xl text-[13px] font-bold hover:bg-red-100 transition-all cursor-pointer"
-                  onClick={() => setIsDeleteModalOpen(true)}
-                >
-                  <Trash2 size={16} className="text-red-400" /> Xóa
-                </button>
               </div>
             </div>
 
-            <div className="mx-6 mt-8 p-5 bg-blue-50 rounded-[1.5rem] border border-blue-100">
+            {/* <div className="mx-6 mt-8 p-5 bg-blue-50 rounded-[1.5rem] border border-blue-100">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
                 Gói thành viên
               </p>
@@ -297,7 +287,7 @@ const UserProfileManagement = () => {
               <button className="w-full mt-4 py-3 bg-blue-600 text-white rounded-xl text-[11px] font-black flex items-center justify-center gap-2 transition-all cursor-pointer">
                 <RefreshCw size={14} /> Gia hạn ngay
               </button>
-            </div>
+            </div> */}
           </div>
         </aside>
 
@@ -351,14 +341,6 @@ const UserProfileManagement = () => {
         onClose={() => setIsUpdateModalOpen(false)}
         userProfile={userProfile}
         onSuccess={onSuccess}
-      />
-      <ConfirmDeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={() => handleDeleteUser(userProfile.id)}
-        isLoading={isDeleting}
-        title="Xóa người dùng?"
-        description={`Bạn có chắc chắn muốn xóa ${userProfile.name}? Dữ liệu của người dùng này sẽ bị mất vĩnh viễn.`}
       />
     </div>
   );

@@ -159,7 +159,7 @@ export const CreateUserModal = ({
                 Đang xử lý...
               </>
             ) : (
-              "Xác nhận tạo người dùng"
+              "Xác nhận tạo mới"
             )}
           </button>
         </form>

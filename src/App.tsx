@@ -31,12 +31,14 @@ const JobPostDetails = lazy(
 const CommunityPostDetail = lazy(
   () => import("./components/pages/community/CommunityPostDetail"),
 );
+const Dashboard = lazy(
+  () => import("./components/pages/subscription/SubscriptionManagement"),
+);
 
 import { ToastContainer } from "react-toastify";
 
 import LoadingWrapper from "./components/loading/LoadingWrapper";
 import PaymentFailedPage from "./components/pages/subscription/PaymentFailedPage";
-import { StatisticPage } from "./components/pages/analytic/StatisticPage";
 // import Members từ một file page khác bạn sẽ tạo
 
 function App() {
@@ -80,7 +82,7 @@ function App() {
             />
             <Route path="job-posts" element={<JobPostManagement />} />
             <Route path="job-posts/:id" element={<JobPostDetails />} />
-            <Route path="statistics" element={<StatisticPage />} />
+            <Route path="statistics" element={<Dashboard />} />
             <Route path="portfolios" element={<PortfolioManagement />} />
           </Route>
           <Route path="*" element={<div>404 Not Found</div>} />

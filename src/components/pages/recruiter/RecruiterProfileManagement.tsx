@@ -8,12 +8,7 @@ import {
   MapPin,
   Hash,
   Globe,
-  RefreshCw,
-  MoreVertical,
-  Code2,
-  Palette,
-  Terminal,
-  ArrowLeft
+  ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Recruiter } from "@/types/user";
@@ -21,6 +16,7 @@ import { handleEnumStatus } from "@/utils/FormatTime";
 import { CommunityTab } from "../user/CommunityTab";
 import { notify } from "@/lib/toast";
 import { useAppSelector } from "@/store/hook";
+import JobPostsTab from "./JobPostTab";
 // const MOCK_POSTS = [
 //   {
 //     id: "p1",
@@ -47,72 +43,71 @@ import { useAppSelector } from "@/store/hook";
 //   },
 // ];
 // --- Sub-Components: Tab Tin tuyển dụng ---
-const JobPostsTab = () => {
+// const JobPostsTab = () => {
+//   const jobs = [
+//     {
+//       id: 1,
+//       title: "Senior Frontend Developer (React/NextJS)",
+//       status: "ĐANG TUYỂN",
+//       icon: Code2,
+//       color: "text-blue-500 bg-blue-50",
+//     },
+//     {
+//       id: 2,
+//       title: "Lead UI/UX Designer",
+//       status: "ĐANG TUYỂN",
+//       icon: Palette,
+//       color: "text-purple-500 bg-purple-50",
+//     },
+//     {
+//       id: 3,
+//       title: "Backend Engineer (Golang)",
+//       status: "ĐÃ ĐÓNG",
+//       icon: Terminal,
+//       color: "text-slate-500 bg-slate-50",
+//     },
+//   ];
 
-  const jobs = [
-    {
-      id: 1,
-      title: "Senior Frontend Developer (React/NextJS)",
-      status: "ĐANG TUYỂN",
-      icon: Code2,
-      color: "text-blue-500 bg-blue-50",
-    },
-    {
-      id: 2,
-      title: "Lead UI/UX Designer",
-      status: "ĐANG TUYỂN",
-      icon: Palette,
-      color: "text-purple-500 bg-purple-50",
-    },
-    {
-      id: 3,
-      title: "Backend Engineer (Golang)",
-      status: "ĐÃ ĐÓNG",
-      icon: Terminal,
-      color: "text-slate-500 bg-slate-50",
-    },
-  ];
-
-  return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-      {jobs.map((job) => (
-        <div
-          key={job.id}
-          className="group bg-white border border-slate-100 rounded-xl p-4 flex items-center justify-between hover:border-blue-200 transition-all shadow-sm"
-        >
-          <div className="flex items-center gap-4">
-            <div
-              className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center",
-                job.color,
-              )}
-            >
-              <job.icon size={22} />
-            </div>
-            <h4 className="text-[15px] font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
-              {job.title}
-            </h4>
-          </div>
-          <div className="flex items-center gap-4">
-            <span
-              className={cn(
-                "px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter",
-                job.status === "ĐANG TUYỂN"
-                  ? "bg-emerald-50 text-emerald-500"
-                  : "bg-slate-100 text-slate-400",
-              )}
-            >
-              {job.status}
-            </span>
-            <button className="text-slate-300 hover:text-slate-600 p-1">
-              <MoreVertical size={18} />
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
+//   return (
+//     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+//       {jobs.map((job) => (
+//         <div
+//           key={job.id}
+//           className="group bg-white border border-slate-100 rounded-xl p-4 flex items-center justify-between hover:border-blue-200 transition-all shadow-sm"
+//         >
+//           <div className="flex items-center gap-4">
+//             <div
+//               className={cn(
+//                 "w-12 h-12 rounded-xl flex items-center justify-center",
+//                 job.color,
+//               )}
+//             >
+//               <job.icon size={22} />
+//             </div>
+//             <h4 className="text-[15px] font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
+//               {job.title}
+//             </h4>
+//           </div>
+//           <div className="flex items-center gap-4">
+//             <span
+//               className={cn(
+//                 "px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter",
+//                 job.status === "ĐANG TUYỂN"
+//                   ? "bg-emerald-50 text-emerald-500"
+//                   : "bg-slate-100 text-slate-400",
+//               )}
+//             >
+//               {job.status}
+//             </span>
+//             <button className="text-slate-300 hover:text-slate-600 p-1">
+//               <MoreVertical size={18} />
+//             </button>
+//           </div>
+//         </div>
+//       ))}
+//     </div>
+//   );
+// };
 
 const RecruiterProfileManagement = () => {
   const [activeTab, setActiveTab] = useState("Bài đăng tuyển dụng");
@@ -156,21 +151,39 @@ const RecruiterProfileManagement = () => {
       const response = await fetch(
         `https://auth-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Auth/lock-user/${userId}`,
         {
-          method: "DELETE",
+          method: "PUT",
           headers: { Authorization: `Bearer ${accessToken}` },
         },
       );
 
       if (response.ok) {
-        notify.success("Xóa bài viết thành công");
+        notify.success("Khóa người dùng thành công");
         fetchRecruiterById();
       } else {
-        notify.error("Không thể xóa bài viết");
+        notify.error("Lỗi khi khóa người dùng");
+      }
+    } catch (error) {}
+  };
+  const handleUnLockUser = async (userId: number) => {
+    try {
+      const response = await fetch(
+        `https://auth-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/Auth/unlock-user/${userId}`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
+
+      if (response.ok) {
+        notify.success("Mở khóa người dùng thành công");
+        fetchRecruiterById();
+      } else {
+        notify.error("Lỗi khi mở khóa người dùng");
       }
     } catch (error) {}
   };
   return (
-    <div className="p-4 flex-1 min-h-screen bg-[#f8fafd] overflow-y-auto no-scrollbar">
+    <div className="p-4 flex-1 min-h-screen bg-[#f7eccd] overflow-y-auto no-scrollbar">
       {/* Nút quay lại cho tiện quản lý */}
       <button
         onClick={() => navigate(-1)}
@@ -184,7 +197,9 @@ const RecruiterProfileManagement = () => {
           {/* Banner động theo recruiter.bannerUrl */}
           <div
             className="h-48 bg-cover bg-center transition-all duration-700"
-            style={{ backgroundImage: `url(${recruiterProfile.coverImage || "/default"})` }}
+            style={{
+              backgroundImage: `url(${recruiterProfile.coverImage || "/default"})`,
+            }}
           />
 
           <div className="px-10 pb-8 relative">
@@ -212,7 +227,7 @@ const RecruiterProfileManagement = () => {
                         "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm",
                         recruiterProfile.status === "Active"
                           ? "bg-emerald-50 text-emerald-500"
-                          : "bg-orange-50 text-orange-500",
+                          : "bg-red-50 text-red-500",
                       )}
                     >
                       {handleEnumStatus(recruiterProfile.status)}{" "}
@@ -223,12 +238,22 @@ const RecruiterProfileManagement = () => {
                     {recruiterProfile.description}
                   </p>
                 </div>
-                <button
-                  className="flex items-center gap-2 px-6 py-2.5 bg-red-50 text-red-500 rounded-xl text-[13px] font-black hover:bg-red-100 transition-all border border-red-100 cursor-pointer"
-                  onClick={() => handleLockUser(recruiterProfile.userId)}
-                >
-                  <Ban size={16} /> Khóa tài khoản
-                </button>
+                {recruiterProfile.status === "Active" && (
+                  <button
+                    className="flex items-center gap-2 px-6 py-2.5 bg-slate-50 text-slate-500 rounded-xl text-[13px] font-black hover:bg-slate-100 transition-all border border-red-100 cursor-pointer"
+                    onClick={() => handleLockUser(recruiterProfile.userId)}
+                  >
+                    <Ban size={16} /> Khóa tài khoản
+                  </button>
+                )}
+                {recruiterProfile.status === "Locked" && (
+                  <button
+                    className="flex items-center gap-2 px-6 py-2.5 bg-red-50 text-red-500 rounded-xl text-[13px] font-black hover:bg-red-100 transition-all border border-red-100 cursor-pointer"
+                    onClick={() => handleUnLockUser(recruiterProfile.userId)}
+                  >
+                    <Ban size={16} /> Mở khóa tài khoản
+                  </button>
+                )}
               </div>
             </div>
 
@@ -259,7 +284,7 @@ const RecruiterProfileManagement = () => {
         </div>
 
         {/* --- PHẦN 2: TABS VÀ GÓI DỊCH VỤ --- */}
-        <div className="grid grid-cols-1 md:grid-cols-11 gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-11 gap-8 items-center mx-auto">
           <main className="md:col-span-8 bg-white rounded-[1.25rem] shadow-sm border-2 border-white flex flex-col min-h-[500px]">
             <div className="flex border-b border-slate-50 px-8">
               {[
@@ -287,9 +312,7 @@ const RecruiterProfileManagement = () => {
             </div>
 
             <div className="p-8 bg-slate-50/20 flex-1">
-              {activeTab === "Bài đăng tuyển dụng" && (
-                <JobPostsTab />
-              )}
+              {activeTab === "Bài đăng tuyển dụng" && <JobPostsTab userId={recruiterProfile.userId} />}
               {activeTab === "Cộng đồng" && (
                 <CommunityTab userId={recruiterProfile.userId} />
               )}
@@ -297,7 +320,7 @@ const RecruiterProfileManagement = () => {
           </main>
 
           {/* Right: Membership Info - Sử dụng dữ liệu plan & expiryDate */}
-          <aside className="md:col-span-3 space-y-6 sticky top-8">
+          {/* <aside className="md:col-span-3 space-y-6 sticky top-8">
             <div className="bg-white rounded-[1.25rem] shadow-sm border-2 border-white p-6">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">
                 Gói dịch vụ
@@ -316,7 +339,7 @@ const RecruiterProfileManagement = () => {
                 <RefreshCw size={18} /> Gia hạn ngay
               </button>
             </div>
-          </aside>
+          </aside> */}
         </div>
       </div>
     </div>
