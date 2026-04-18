@@ -92,7 +92,6 @@ const PlanManagement: React.FC = () => {
 
   // 4. Thêm một dòng tính năng mới (chưa có ID)
   const handleAddNewFeature = () => {
-    const newId = Date.now(); // Tạm thời dùng timestamp làm ID âm để quản lý local
     const newFeature: Feature = {
       id: 0, // ID 0 đánh dấu là cần POST
       planId: editingPlan?.id || 0,

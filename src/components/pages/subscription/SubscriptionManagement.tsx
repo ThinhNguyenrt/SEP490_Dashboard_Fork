@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
-  TrendingDown,
   Users,
-  Search,
-  Filter,
-  MoreVertical,
   History,
   Wallet,
-  UserMinus,
   Loader2,
   ChevronLeft,
   ChevronRight,
