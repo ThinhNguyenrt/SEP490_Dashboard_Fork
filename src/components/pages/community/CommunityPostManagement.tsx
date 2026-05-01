@@ -137,26 +137,13 @@ const CommunityPostManagement = () => {
   const fetchPosts = async (page: number, search: string) => {
     setLoading(true);
     try {
-      const cursor = cursors[page] || null;
-      const url = new URL(
-        "https://community-service.grayforest-11aba44e.southeastasia.azurecontainerapps.io/api/community/posts",
-      );
-      url.searchParams.append("pageSize", pageSize.toString());
-      if (cursor) url.searchParams.append("cursor", cursor.toString());
-      if (search) url.searchParams.append("q", search);
-
-      const response = await fetch(url.toString(), {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPosts(data.items || []);
-        setHasMorePosts(data.hasMore);
-
-        // Lưu cursor cho trang tiếp theo để UI có thể hiển thị nút số
-        if (data.nextCursor) {
-          setCursors((prev) => ({ ...prev, [page + 1]: data.nextCursor }));
+      while (hasMore) {
+        const url = new URL(
+          "https://community-service.redmushroom-1d023c6a.southeastasia.azurecontainerapps.io/api/community/posts"
+        );
+        url.searchParams.append("pageSize", API_FETCH_BATCH_SIZE.toString());
+        if (nextCursor) {
+          url.searchParams.append("cursor", nextCursor.toString());
         }
       }
     } catch (error) {

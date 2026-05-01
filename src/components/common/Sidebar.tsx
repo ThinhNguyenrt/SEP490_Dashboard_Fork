@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Crown,
   ChartArea,
+  CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,11 @@ const NAVIGATION = [
         icon: Briefcase,
         label: "Bài đăng tuyển dụng",
         path: "/dashboard/job-posts",
+      },
+      {
+        icon: CheckCircle2,
+        label: "Tiêu chí đánh giá",
+        path: "/dashboard/criteria",
       },
     ],
   },
