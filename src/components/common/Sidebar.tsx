@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink} from "react-router-dom";
 import {
   Users,
   Building2,
   MessageSquareText,
   Briefcase,
   Contact2,
-  LogOut,
   ChevronLeft,
   ChevronRight,
   Crown,
@@ -14,8 +13,6 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAppDispatch, useAppSelector } from "@/store/hook";
-import { logout } from "@/store/features/auth/authSlice";
 
 const NAVIGATION = [
   {
@@ -65,14 +62,7 @@ const NAVIGATION = [
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
-
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/login");
-  };
+  // const { user } = useAppSelector((state) => state.auth);
 
   return (
     <aside
@@ -170,7 +160,7 @@ const Sidebar = () => {
       </div>
 
       {/* Footer User */}
-      <div className="p-4 border-t border-slate-50">
+      {/* <div className="p-4 border-t border-slate-50">
         <div
           className={cn(
             "bg-slate-50/50 rounded-[1.5rem] flex items-center gap-3 group cursor-pointer transition-all",
@@ -205,7 +195,7 @@ const Sidebar = () => {
             </button>
           )}
         </div>
-      </div>
+      </div> */}
     </aside>
   );
 };
