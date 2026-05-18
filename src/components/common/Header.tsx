@@ -22,7 +22,7 @@ export const DashboardHeader = () => {
     navigate("/login");
   };
 console.log("noti:", notifications);
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = async () => {  
     try {
       const res = await fetch(`${BASE_URL}/notifications/unread-count`, {
         headers: { Authorization: `Bearer ${accessToken}` },
