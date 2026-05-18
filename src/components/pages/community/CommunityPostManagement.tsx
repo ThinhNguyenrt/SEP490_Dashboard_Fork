@@ -101,7 +101,7 @@ const CommunityPostManagement = () => {
   // 1. Fetch và đếm Bài đăng
   const fetchAllPostsCount = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/community/posts?pageSize=100`, {
+      const response = await fetch(`${BASE_URL}/community/admin/posts`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
