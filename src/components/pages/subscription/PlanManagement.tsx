@@ -4,12 +4,13 @@ import {
   Edit2,
   Trash2,
   X,
-  // Check,
   Settings2,
   Loader2,
   Save,
   Type,
   ChevronDown,
+  User,
+  Building2,
 } from "lucide-react";
 import { Feature, Plan } from "@/types/subscription";
 import { useAppSelector } from "@/store/hook";
@@ -26,6 +27,11 @@ const billingOptions = [
   { label: "Gói năm", value: "2" },
 ];
 
+const roleOptions = [
+  { label: "Ứng viên", value: "1" },
+  { label: "Doanh nghiệp", value: "2" },
+];
+
 const PlanManagement: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -34,8 +40,10 @@ const PlanManagement: React.FC = () => {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const BASE_URL = "https://subscription-service.redmushroom-1d023c6a.southeastasia.azurecontainerapps.io/api";
-  // Quản lý Billing Cycle bằng State để đồng bộ với Select
+  
+  // Quản lý Billing Cycle & Allowed Role bằng State để đồng bộ với Select
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<string>("1");
+  const [selectedAllowedRole, setSelectedAllowedRole] = useState<string>("1");
 
   const { accessToken } = useAppSelector((state) => state.auth);
   const planFormRef = useRef<HTMLDivElement>(null);
@@ -59,7 +67,7 @@ const PlanManagement: React.FC = () => {
       console.error("Lỗi fetch plans:", error);
       notify.error("Không thể tải danh sách gói");
     } finally {
-      setLoading(false);
+      loading && setLoading(false);
     }
   };
 
@@ -116,6 +124,7 @@ const PlanManagement: React.FC = () => {
         price: parseFloat((planInputs?.[1] as HTMLInputElement).value),
         description: editingPlan.description || "",
         billingCycle: parseInt(selectedBillingCycle),
+        allowedRole: selectedAllowedRole, // Lưu thông tin loại role dưới dạng string
       };
 
       // Promise cập nhật thông tin chung của Plan
@@ -197,14 +206,58 @@ const PlanManagement: React.FC = () => {
     }
   };
 
+  // Hàm helper để render danh sách gói theo từng Role
+  const renderPlanGrid = (filteredPlans: Plan[]) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {filteredPlans.map((plan) => (
+        <div
+          key={plan.id}
+          className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl transition-all group relative overflow-hidden"
+        >
+          <div className="flex justify-between items-start mb-6">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl font-black text-[10px] uppercase tracking-widest">
+              {plan.billingCycle === "Monthly" ? "Gói tháng" : "Gói năm"}
+            </div>
+            <button
+              onClick={() => {
+                setEditingPlan(plan);
+                setSelectedBillingCycle(String(plan.billingCycle));
+                setSelectedAllowedRole(String(plan.allowedRole)); // Gán giá trị role hiện tại lên select mẫu
+                setIsModalOpen(true);
+                fetchFeatures(plan.id);
+              }}
+              className="p-2 text-slate-300 hover:text-blue-600 transition-colors cursor-pointer"
+            >
+              <Edit2 size={18} />
+            </button>
+          </div>
+          <h3 className="text-2xl font-black mb-1 leading-tight">
+            {plan.name}
+          </h3>
+          <p className="text-slate-500 text-xs mb-2 ">
+            {plan.description || "Chưa có mô tả"}
+          </p>
+          <p className="text-3xl font-black text-blue-600 mb-4">
+            {plan.price.toLocaleString()} VND
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="p-8 bg-[#f7eccd] min-h-screen font-sans text-slate-900 overflow-x-hidden">
       <div className="max-w-full mx-auto space-y-8">
         <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-black tracking-tight text-slate-800 uppercase">
+            Quản lý gói dịch vụ
+          </h1>
           <button
             onClick={() => {
               setEditingPlan({ features: [] });
               setSelectedBillingCycle("1");
+              setSelectedAllowedRole("1"); // Reset về mặc định: Ứng viên
+              setFeatures([]);
               setIsModalOpen(true);
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer"
@@ -217,51 +270,34 @@ const PlanManagement: React.FC = () => {
           <div className="flex flex-col items-center justify-center h-72 text-slate-400">
             <Loader2 className="animate-spin mb-2" size={32} />
             <span className="font-bold text-xs uppercase tracking-widest">
-              Đang tải...
+              Đang tải ...
             </span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {plans.map((plan) => (
-              <div
-                key={plan.id}
-                className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl transition-all group relative overflow-hidden"
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl font-black text-[10px] uppercase tracking-widest">
-                    {plan.billingCycle === "Monthly" ? "Gói tháng" : "Gói năm"}
-                  </div>
-                  <button
-                    onClick={() => {
-                      setEditingPlan(plan);
-                      setSelectedBillingCycle(String(plan.billingCycle));
-                      setIsModalOpen(true);
-                      fetchFeatures(plan.id);
-                    }}
-                    className="p-2 text-slate-300 hover:text-blue-600 transition-colors cursor-pointer"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                </div>
-                <h3 className="text-2xl font-black mb-1 leading-tight">
-                  {plan.name}
-                </h3>
-                <p className="text-3xl font-black text-blue-600 mb-4">
-                  {plan.price.toLocaleString()} VND
-                </p>
-                {/* <div className="pt-6 border-t border-slate-50 space-y-2">
-                  {plan.features?.slice(0, 4).map((f, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-2 text-xs font-bold text-slate-600 "
-                    >
-                      <Check size={14} className="text-green-500" />{" "}
-                      {f.featureName}
-                    </div>
-                  ))}
-                </div> */}
+          <div className="space-y-12">
+            {/* HÀNG 1: DÀNH CHO ỨNG VIÊN (ROLE = "1") */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-slate-800 font-black text-sm uppercase tracking-wider px-2">
+                <User size={18} className="text-blue-600" />
+                Gói dịch vụ dành cho Ứng viên
               </div>
-            ))}
+              {renderPlanGrid(plans.filter((p) => String(p.allowedRole) === "1"))}
+              {plans.filter((p) => String(p.allowedRole) === "1").length === 0 && (
+                <p className="text-xs text-slate-500  pl-2">Chưa có cấu hình gói dịch vụ ứng viên.</p>
+              )}
+            </div>
+
+            {/* HÀNG 2: DÀNH CHO DOANH NGHIỆP (ROLE = "2") */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-slate-800 font-black text-sm uppercase tracking-wider px-2">
+                <Building2 size={18} className="text-emerald-600" />
+                Gói dịch vụ dành cho Doanh nghiệp
+              </div>
+              {renderPlanGrid(plans.filter((p) => String(p.allowedRole) === "2"))}
+              {plans.filter((p) => String(p.allowedRole) === "2").length === 0 && (
+                <p className="text-xs text-slate-500  pl-2">Chưa có cấu hình gói dịch vụ doanh nghiệp.</p>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -275,7 +311,7 @@ const PlanManagement: React.FC = () => {
                   {editingPlan?.id ? "Cập nhật gói dịch vụ" : "Tạo gói mới"}
                 </h2>
                 <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">
-                  Cấu hình chi phí & quyền hạn
+                  Cấu hình chi phí, chu kỳ & phân hệ tài khoản áp dụng
                 </p>
               </div>
               <button
@@ -322,6 +358,30 @@ const PlanManagement: React.FC = () => {
                       className="w-full px-6 py-4 bg-white border-none rounded-2xl text-sm font-bold shadow-sm outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                     >
                       {billingOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={18}
+                      className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    />
+                  </div>
+                </div>
+
+                {/* THÊM TRƯỜNG ALLOWED ROLE TẠI ĐÂY */}
+                <div className="space-y-2 md:col-span-3">
+                  <label className="text-[10px] font-black uppercase text-blue-500 ml-1">
+                    Đối tượng áp dụng (Allowed Role)
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedAllowedRole}
+                      onChange={(e) => setSelectedAllowedRole(e.target.value)}
+                      className="w-full px-6 py-4 bg-white border-none rounded-2xl text-sm font-bold shadow-sm outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+                    >
+                      {roleOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>
                           {opt.label}
                         </option>
