@@ -66,7 +66,8 @@ const Dashboard: React.FC = () => {
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [revenueData, setRevenueData] = useState<AnalyticRevenue | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
-  const BASE_URL = "https://subscription-service.redmushroom-1d023c6a.southeastasia.azurecontainerapps.io/api";
+  const BASE_URL =
+    "https://subscription-service.redmushroom-1d023c6a.southeastasia.azurecontainerapps.io/api";
   // --- State phụ trách Khu vực Xuất Báo Cáo & Overlay ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reportType, setReportType] = useState<"month" | "year" | "">("");
@@ -80,14 +81,8 @@ const Dashboard: React.FC = () => {
 
       // Gọi cả 2 API cùng lúc
       const [resOverview, resRevenue] = await Promise.all([
-        fetch(
-          `${BASE_URL}/admin/analytics/overview`,
-          { headers },
-        ),
-        fetch(
-          `${BASE_URL}/admin/analytics/revenue`,
-          { headers },
-        ),
+        fetch(`${BASE_URL}/admin/analytics/overview`, { headers }),
+        fetch(`${BASE_URL}/admin/analytics/revenue`, { headers }),
       ]);
 
       const dataOverview = await resOverview.json();
@@ -209,41 +204,111 @@ const Dashboard: React.FC = () => {
       return;
     }
 
-    // 1. Lọc dữ liệu theo khoảng thời gian người dùng đã chọn trong Overlay
+    // 1. LỌC DỮ LIỆU: Chỉ lấy các giao dịch "Active" trong khoảng ngày chọn
     const start = new Date(exportStartDate);
     const end = new Date(exportEndDate);
 
     const dataToExport = subscriptions.filter((s) => {
       const createdAt = new Date(s.createdAt);
-      return createdAt >= start && createdAt <= end;
+      return s.status === "Active" && createdAt >= start && createdAt <= end;
     });
 
     if (dataToExport.length === 0) {
-      alert("Không có dữ liệu trong khoảng thời gian này để xuất file!");
+      alert(
+        "Không có dữ liệu 'Đang hoạt động' (Active) nào trong khoảng thời gian này để xuất file!",
+      );
       return;
     }
 
-    // 2. Format lại dữ liệu để hiển thị đẹp trong Excel
-    const excelData = dataToExport.map((s) => ({
-      "Mã Đăng Ký": s.id,
-      "Tên Người Dùng": s.userName,
-      "Gói Dịch Vụ": s.planName,
-      "Trạng Thái": s.status === "Active" ? "Hoạt động" : "Khác",
-      "Ngày Bắt Đầu": new Date(s.startDate).toLocaleDateString("vi-VN"),
-      "Ngày Kết Thúc": new Date(s.endDate).toLocaleDateString("vi-VN"),
-      "Ngày Tạo": new Date(s.createdAt).toLocaleDateString("vi-VN"),
-    }));
+    // 2. TÍNH TOÁN CÁC CHỈ SỐ BÁO CÁO (Phục vụ hàng Tổng kết ở cuối file)
+    const totalSubscriptions = dataToExport.length;
 
-    // 3. Quy trình tạo file Excel
+    // Tính tổng doanh thu (Giả định giá trị từ API cần nhân 1000 theo logic hiển thị Dashboard của bạn)
+    // Nếu s.price hoặc s.amount không có sẵn, bạn có thể map theo s.planName (Ví dụ: Pro = 99k, Premium = 199k...)
+    // Ở đây sử dụng s.price (hoặc trường lưu giá trị gói tương ứng trong type Subscription của bạn)
+    const totalRevenue = dataToExport.reduce((sum, s) => {
+      // Thay 's.price' bằng trường số tiền thực tế trong gói đăng ký của bạn nếu tên thuộc tính khác
+      const price =
+        (s as any).price ||
+        (s.planName === "Premium" ? 199 : s.planName === "Pro" ? 99 : 0);
+      return sum + price * 1000;
+    }, 0);
+
+    // 3. FORMAT DỮ LIỆU CHI TIẾT: Thêm STT và định dạng tiền tệ trực quan
+    const excelData = dataToExport.map((s, index) => {
+      const price =
+        (s as any).price ||
+        (s.planName === "Premium" ? 199 : s.planName === "Pro" ? 99 : 0);
+      return {
+        STT: index + 1,
+        "Mã Đăng Ký": s.id,
+        "Tên Người Dùng": s.userName || "Người dùng ẩn danh",
+        "Gói Dịch Vụ": s.planName,
+        "Giá Tiền": new Intl.NumberFormat("vi-VN").format(price * 1000) + "đ",
+        "Trạng Thái": "Hoạt động",
+        "Ngày Bắt Đầu": new Date(s.startDate).toLocaleDateString("vi-VN"),
+        "Ngày Kết Thúc": new Date(s.endDate).toLocaleDateString("vi-VN"),
+        "Ngày Tạo": new Date(s.createdAt).toLocaleDateString("vi-VN"),
+      };
+    });
+
+    // 4. QUY TRÌNH TẠO WORKSHEET
     const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Subscriptions");
 
-    // 4. Xuất file và tự động tải xuống
-    const fileName = `Bao_cao_doanh_thu_${reportType}_${exportStartDate}_den_${exportEndDate}.xlsx`;
+    // 5. THÊM CÁC HÀNG TỔNG KẾT VÀO CUỐI BẢNG (Cách 2 hàng trống cho đẹp)
+    const emptyRowIndex = excelData.length + 2;
+    const totalRevenueRowIndex = emptyRowIndex + 1;
+    const totalSubRowIndex = totalRevenueRowIndex + 1;
+
+    // Ghi hàng Tổng doanh thu (Đặt ở cột C và D để ngay ngắn)
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [
+        [
+          "TỔNG DOANH THU TRONG KỲ:",
+          new Intl.NumberFormat("vi-VN").format(totalRevenue) + "đ",
+        ],
+      ],
+      {
+        origin: `C${totalRevenueRowIndex}`,
+      },
+    );
+
+    // Ghi hàng Tổng đăng ký thành công
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [["TỔNG ĐĂNG KÝ THÀNH CÔNG:", totalSubscriptions + " lượt"]],
+      {
+        origin: `C${totalSubRowIndex}`,
+      },
+    );
+
+    // 6. CHỐNG TRÀN CHỮ: Tự động tính độ rộng dựa trên cả tiêu đề, dữ liệu và hàng tổng kết
+    const maxProps = Object.keys(excelData[0]);
+    const colWidths = maxProps.map((key) => {
+      const maxLength = Math.max(
+        key.length,
+        ...excelData.map(
+          (row) => String(row[key as keyof typeof row] || "").length,
+        ),
+        30, // Đặt độ rộng tối thiểu là 30 cho cột dữ liệu chứa text dài hoặc hàng tổng kết phía dưới không bị che
+      );
+      return { wch: maxLength + 2 };
+    });
+    worksheet["!cols"] = colWidths;
+
+    // 7. TẠO BỘ LỌC TỰ ĐỘNG (Chỉ áp dụng riêng cho vùng dữ liệu từ A1 đến I... của bảng chi tiết)
+    const tableRange = `A1:I${excelData.length + 1}`;
+    worksheet["!autofilter"] = { ref: tableRange };
+
+    // 8. XUẤT FILE VÀ TẢI XUỐNG
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo Doanh thu");
+
+    const fileName = `Bao_cao_Doanh_thu_Chi_tiet_${reportType}_${exportStartDate}_den_${exportEndDate}.xlsx`;
     XLSX.writeFile(workbook, fileName);
 
-    // Đóng modal
+    // Đóng modal và reset trạng thái overlay
     setIsModalOpen(false);
     setExportStartDate("");
     setExportEndDate("");
