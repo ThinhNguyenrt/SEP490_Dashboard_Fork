@@ -14,6 +14,7 @@ export interface Plan {
   description: string;
   price: number;
   billingCycle: string;
+  allowedRole: string;
   features: Feature[];
 }
 export interface Subscription {
